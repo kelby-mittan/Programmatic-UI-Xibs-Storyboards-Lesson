@@ -9,5 +9,6 @@
 import UIKit
 
 class PodcastCell: UICollectionViewCell {
+    @IBOutlet var podcastImageView: UIImageView!
     
 }

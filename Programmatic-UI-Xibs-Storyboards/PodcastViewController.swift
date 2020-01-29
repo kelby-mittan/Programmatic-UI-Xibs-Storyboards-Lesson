@@ -14,7 +14,9 @@ class PodcastViewController: UIViewController {
     
     private var podcasts = [Podcast]() {
         didSet {
-            // code here
+            DispatchQueue.main.async {
+                self.podcastView.collectionView.reloadData()
+            }
         }
     }
     
@@ -30,8 +32,13 @@ class PodcastViewController: UIViewController {
         podcastView.collectionView.dataSource = self
         podcastView.collectionView.delegate = self
         
-        // register collectionView cell
-        podcastView.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "podcastCell")
+//        // register collectionView cell
+//        podcastView.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "podcastCell")
+        
+        // or
+        
+        // register collectionView cell using nib
+        podcastView.collectionView.register(UINib(nibName: "PodcastCell", bundle: nil), forCellWithReuseIdentifier: "podcastCell")
         
         fetchPodcasts()
     }
@@ -50,13 +57,16 @@ class PodcastViewController: UIViewController {
 
 extension PodcastViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 50
+        return podcasts.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "podcastCell", for: indexPath)
         
-        cell.backgroundColor = .orange
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "podcastCell", for: indexPath) as? PodcastCell else {
+            fatalError("could not downcast to PodcastCell")
+        }
+        
+        cell.backgroundColor = .white
         return cell
     }
 }
@@ -68,7 +78,20 @@ extension PodcastViewController: UICollectionViewDelegateFlowLayout {
         let maxSize: CGSize = UIScreen.main.bounds.size
         let itemWidth: CGFloat = maxSize.width * 0.85
         
-        return CGSize(width: itemWidth, height: 240)
+        return CGSize(width: itemWidth, height: 120)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let podcast = podcasts[indexPath.row]
+        print(podcast.collectionName)
+        
+        let podcastDetailStoryboard = UIStoryboard(name: "PodcastDetail", bundle: nil)
+        guard let podcastDetailController = podcastDetailStoryboard.instantiateViewController(withIdentifier: "PodcastDetailController") as? PodcastDetailController else {
+            fatalError("could not downcast")
+        }
+        podcastDetailController.podcast = podcast
+        
+        navigationController?.pushViewController(podcastDetailController, animated: true)
     }
 }
 
